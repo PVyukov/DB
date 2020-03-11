@@ -17,9 +17,16 @@ CREATE TABLE new_users (
   updated_at DATETIME
 );
 
+/* мой вариант
 INSERT INTO new_users SELECT id, name, STR_TO_DATE(created_at, '%d.%m.%Y %H:%i'), STR_TO_DATE(updated_at, '%d.%m.%Y %H:%i')  FROM users;
 DROP TABLE users;
 ALTER TABLE new_users RENAME users;
+*/
+
+-- правильный вариант
+UPDATE users SET created_at = STR_TO_DATE(created_at, '%d.%m.%Y %H:%i'), updated_at = STR_TO_DATE(updated_at, '%d.%m.%Y %H:%i');
+ALTER TABLE users CHANGE created_at created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE users CHANGE updated_at updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
 -- 3) В таблице складских запасов storehouses_products в поле value могут встречаться самые
 --    разные цифры: 0, если товар закончился и выше нуля, если на складе имеются запасы.
@@ -42,10 +49,10 @@ INSERT INTO storehouses_products (value) VALUES
  (1);
 
 SELECT 
- *,
- IF (value=0, 1, 0) as is_zero
-FROM storehouses_products
-ORDER by  is_zero , value;
+ *
+-- чтобы не появился ненужный лишний стоблец, данное условие нужно перенсти в ORDER BY  IF (value=0, 1, 0) as is_zero
+FROM storehouses_products 
+ORDER by   IF (value=0, 1, 0) , value;
  
  
 -- 4) (по желанию) Из таблицы users необходимо извлечь пользователей, родившихся в августе и мае.

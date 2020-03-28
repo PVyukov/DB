@@ -10,6 +10,15 @@ FROM likes AS l
      WHERE t.name = 'users' AND 
            l.target_id IN 
              (SELECT * FROM (SELECT user_id FROM profiles ORDER BY birthday DESC LIMIT 10) AS tmp); 
+            
+-- улучшенная версия
+SELECT COUNT(l.user_id) AS total 
+FROM likes AS l
+	 JOIN (SELECT user_id FROM profiles ORDER BY birthday DESC LIMIT 10) AS yongest
+       ON l.target_id = yongest.user_id
+     JOIN target_types AS t 
+       ON l.target_type_id = t.id 
+     WHERE t.name = 'users';
 
             
  -- 3. Определить кто больше поставил лайков (всего) - мужчины или женщины?

@@ -6,7 +6,7 @@ DELIMITER //
 
 DROP FUNCTION IF EXISTS hello//
 CREATE FUNCTION hello()
-RETURNS VARCHAR(20) DETERMINISTIC
+RETURNS VARCHAR(20) NO SQL -- Вместо DETERMINISTIC (результат кешируется и при вызове с одними и теми же папраметрами возвращает сохранненое значение в кеше) можно использовать NO SQL (значит даные не читаются из таблиц и каждый раз возвращаемое значение будет высчитываться заново)
 BEGIN
   DECLARE str VARCHAR(20);
   DECLARE var INT;
@@ -39,5 +39,28 @@ BEGIN
 END //
 
 
+-- правильный вариант
+DELIMITER //
+
+CREATE TRIGGER validate_name_description_insert BEFORE INSERT ON products
+FOR EACH ROW BEGIN
+  IF NEW.name IS NULL AND NEW.description IS NULL THEN
+    SIGNAL SQLSTATE '45000'  -- вызвать ошибку
+    SET MESSAGE_TEXT = 'Both name and description are NULL'; -- текст ошибки
+  END IF;
+END//
+
 -- 3. (по желанию) Напишите хранимую функцию для вычисления произвольного числа Фибоначчи. Числами Фибоначчи называется последовательность 
 --    в которой число равно сумме двух предыдущих чисел. Вызов функции FIBONACCI(10) должен возвращать число 55.
+DELIMITER //
+
+CREATE FUNCTION FIBONACCI(num INT)
+RETURNS INT DETERMINISTIC -- всегду получаем одно и тоже значение при запуске с тем же ургкментом (num)
+BEGIN
+  DECLARE fs DOUBLE;
+  SET fs = SQRT(5);
+
+  RETURN (POW((1 + fs) / 2.0, num) + POW((1 - fs) / 2.0, num)) / fs;
+END//
+
+SELECT FIBONACCI(10)//
